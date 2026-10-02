@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ajedrez para chicos</title>
+<style>
+:root{--bg:#fff3d6;--card:#fff;--ink:#2b2d42;--l:#f3ead0;--d:#7fb58a;--fr:#8a5a3b;--bg2:#e9e4ff;--ok:#4cc26b;--acc:#ff7a59;--bub:#e4f1ff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1d2036;--card:#2a2e4a;--ink:#f4f1ea;--l:#cfc3a0;--d:#4f7a5a;--fr:#5b3d28;--bg2:#2a2146;--bub:#33395c}}
+:root[data-theme="dark"]{--bg:#1d2036;--card:#2a2e4a;--ink:#f4f1ea;--l:#cfc3a0;--d:#4f7a5a;--fr:#5b3d28;--bg2:#2a2146;--bub:#33395c}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(160deg,var(--bg),var(--bg2)) fixed;color:var(--ink);font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;min-height:100vh}
+#app{max-width:480px;margin:0 auto;padding:12px 14px 28px}
+header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+h1{font-size:1.5rem;margin:0;flex:1;letter-spacing:.3px}
+button{font:inherit;cursor:pointer;border:0;border-radius:16px;padding:12px 18px;background:var(--acc);color:#fff;font-weight:700;font-size:1.05rem;box-shadow:0 4px 0 rgba(0,0,0,.18)}
+button:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.18)}
+button.g{background:var(--card);color:var(--ink)}
+#tot{font-weight:700}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.card{background:var(--card);border-radius:24px;padding:16px 8px;text-align:center;cursor:pointer;box-shadow:0 6px 0 rgba(0,0,0,.12),0 10px 20px rgba(0,0,0,.08);transition:transform .15s}.card:active{transform:scale(.96)}
+.card .gl{font-size:3rem;line-height:1;width:84px;height:84px;margin:0 auto 6px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--l);color:#fff;text-shadow:0 0 3px #000,0 0 3px #000}
+.card .nm{font-weight:700;margin:4px 0}
+.bub{display:flex;gap:10px;align-items:center;background:var(--bub);border-radius:22px;box-shadow:0 4px 0 rgba(0,0,0,.1);padding:12px 14px;margin-bottom:14px;font-size:1.05rem;min-height:84px}
+.bub span{flex:1}
+.bub button{padding:8px 12px;font-size:1.3rem}
+.board{container-type:inline-size;display:grid;grid-template-columns:repeat(8,minmax(0,1fr));grid-template-rows:repeat(8,minmax(0,1fr));width:100%;aspect-ratio:1;border:8px solid var(--fr);border-radius:16px;overflow:hidden;box-shadow:0 8px 0 rgba(0,0,0,.18),0 14px 24px rgba(0,0,0,.2);touch-action:manipulation}
+.s{position:relative;display:flex;align-items:center;justify-content:center;min-width:0;min-height:0;overflow:hidden}
+.s.l{background:var(--l)}.s.d{background:var(--d)}
+.p{font-size:10cqw;line-height:1;position:relative;z-index:2;filter:drop-shadow(0 3px 2px rgba(0,0,0,.35))}
+.p.w{color:#fff;text-shadow:0 0 3px #000,0 0 3px #000,0 0 2px #000}
+.p.e{color:#2b2d42;text-shadow:0 0 2px #fff}
+.dot{position:absolute;width:34%;height:34%;border-radius:50%;background:var(--ok);opacity:.9;z-index:1;box-shadow:0 0 0 4px rgba(255,255,255,.35)}
+.cap{position:absolute;inset:6%;border-radius:50%;border:4px solid #e63946;z-index:3}
+.star{position:absolute;font-size:8cqw;z-index:1;animation:pu 1s infinite alternate}
+@keyframes pu{to{transform:scale(1.25)}}
+.wig{animation:wg .4s}
+@keyframes wg{25%{transform:rotate(-12deg)}75%{transform:rotate(12deg)}}
+.row{display:flex;justify-content:center;gap:10px;margin-top:14px}
+#win{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:20px;z-index:9}
+#win[hidden],[hidden]{display:none!important}
+#win div{background:var(--card);border-radius:24px;padding:24px;text-align:center;max-width:340px}
+#win h2{font-size:1.8rem;margin:0 0 6px}
+.ck{animation:wg .5s infinite;filter:drop-shadow(0 0 6px #e63946)}input{font:inherit;font-size:1.3rem;width:100%;padding:14px 16px;border-radius:16px;border:3px solid var(--d);background:var(--card);color:var(--ink);text-align:center}
+.vr{display:flex;align-items:center;gap:8px;background:var(--card);border-radius:16px;padding:8px 12px;margin-bottom:8px;cursor:pointer;box-shadow:0 3px 0 rgba(0,0,0,.1)}
+.vg,.gl2{color:#fff;text-shadow:0 0 3px #000,0 0 3px #000}.vg{font-size:2rem;width:2.2rem;text-align:center}
+.vn{width:4.8rem;font-weight:700}.vb{flex:1;height:14px;background:var(--l);border-radius:8px;overflow:hidden}.vb i{display:block;height:100%;background:var(--acc);border-radius:8px}.vr b{width:2rem;text-align:right}
+.qb{display:flex;gap:12px}.qb button{flex:1;display:flex;flex-direction:column;align-items:center;background:var(--card);color:var(--ink);padding:14px}.gl2{font-size:3rem}
+</style></head><body>
+<div id="app">
+<header><button id="bk" class="g" hidden aria-label="Volver">⬅️</button><h1 id="ti">♟️ Ajedrez para chicos</h1><span id="tot"></span></header>
+<main id="ini" hidden><div class="bub"><b style="font-size:2.4rem">🦉</b><span>¡Hola! Soy el Búho. ¿Cómo te llamás?</span></div><input id="nm" maxlength="20" placeholder="Escribí tu nombre" autocomplete="off" enterkeyhint="go"><div class="row"><button id="go">¡Empezar! ♟️</button></div></main>
+<main id="menu"></main>
+<main id="les" hidden>
+<div class="bub"><b style="font-size:2.4rem">🦉</b><span id="msg"></span><button id="sp" class="g" aria-label="Escuchar">🔊</button></div>
+<div id="bd" class="board"></div>
+<div class="row"><button id="mode"></button></div>
+</main>
+<main id="val" hidden><div class="bub"><b style="font-size:2.4rem">🦉</b><span id="vm"></span><button id="vsp" class="g" aria-label="Escuchar">🔊</button></div><div id="vl"></div><div id="vq" hidden></div><div class="row"><button id="vmode"></button></div></main>
+<div id="win" hidden><div><h2 id="wh">🎉 ¡Muy bien! 🎉</h2><p id="wt" style="font-size:1.1rem"></p><div style="display:flex;gap:10px;justify-content:center;padding:0;background:none"><button id="w1" class="g">Menú</button><button id="w2">Siguiente ➡️</button></div></div></div>
+</div>
+<script>
+const V="\uFE0E";
+const L=[
+{k:"rook",g:"♜"+V,n:"Torre",t:"La torre es como un tren 🚂: va derecho, para adelante, atrás y a los costados. ¡Tocá un punto verde!",q:"Llevá la torre hasta la estrella ⭐"},
+{k:"bishop",g:"♝"+V,n:"Alfil",t:"El alfil camina en diagonal, como una X ✖️. ¡Siempre queda en casillas del mismo color!",q:"Llevá el alfil hasta la estrella ⭐"},
+{k:"queen",g:"♛"+V,n:"Dama",t:"La dama es la más poderosa 👑: se mueve como la torre y como el alfil juntos.",q:"Llevá la dama hasta la estrella ⭐"},
+{k:"king",g:"♚"+V,n:"Rey",t:"El rey es muy importante, pero lento 🐢: da un solo paso, para cualquier lado.",q:"Llevá el rey hasta la estrella ⭐"},
+{k:"knight",g:"♞"+V,n:"Caballo",t:"El caballo salta 🐴 y hace una L: dos pasos derecho y uno al costado.",q:"Hacé saltar al caballo hasta la estrella ⭐"},
+{k:"pawn",g:"♟"+V,n:"Peón",t:"El peón camina para adelante, de a un paso (la primera vez puede dar dos). ¡Come en diagonal! Probá comer al peón negro.",q:""},
+{k:"check",c:1,m:"rook",cg:"🚨",g:"♜"+V,n:"Jaque",t:"¡Jaque! Es cuando una pieza puede comer al rey. Probá con la torre, y después con el alfil y el caballo ♚.",q:"Hacé jaque: poné la torre mirando al rey negro ♚"},
+{k:"valores",v:1,cg:"⚖️",g:"♟"+V,n:"Valores"}
+];
+const EN="♟"+V;
+let S={},cur,ci,mode,pos,en=[],tg=null,rd=0,dots=[],kg=null,pt="rook",nm="";const PG={rook:"♜"+V,bishop:"♝"+V,knight:"♞"+V},NM={rook:"la torre",bishop:"el alfil",knight:"el caballo"};
+const loadS=()=>{try{S=JSON.parse(localStorage.getItem("ajq:"+nm)||"{}")}catch(e){S={}}};
+const save=()=>{try{localStorage.setItem("ajq:"+nm,JSON.stringify(S))}catch(e){}};
+const $=id=>document.getElementById(id);
+const inb=(r,c)=>r>=0&&r<8&&c>=0&&c<8;
+const ckd=()=>kg&&has(mv(pt,pos[0],pos[1],[kg]),kg[0],kg[1]);
+const rnd=n=>Math.floor(Math.random()*n);
+const has=(E,a,b)=>E.some(e=>e[0]==a&&e[1]==b);
+
+function mv(t,r,c,E){
+  const o=[];
+  const sl=ds=>ds.forEach(([a,b])=>{let x=r+a,y=c+b;while(inb(x,y)){o.push([x,y]);if(has(E,x,y))break;x+=a;y+=b}});
+  const st=ds=>ds.forEach(([a,b])=>{if(inb(r+a,c+b))o.push([r+a,c+b])});
+  const R=[[1,0],[-1,0],[0,1],[0,-1]],B=[[1,1],[1,-1],[-1,1],[-1,-1]];
+  if(t=="rook")sl(R);else if(t=="bishop")sl(B);else if(t=="queen")sl(R.concat(B));
+  else if(t=="king")st(R.concat(B));
+  else if(t=="knight")st([[2,1],[2,-1],[-2,1],[-2,-1],[1,2],[1,-2],[-1,2],[-1,-2]]);
+  else{
+    if(r>0&&!has(E,r-1,c)){o.push([r-1,c]);if(r==6&&!has(E,4,c))o.push([4,c])}
+    [-1,1].forEach(d=>{if(r>0&&has(E,r-1,c+d))o.push([r-1,c+d])});
+  }
+  return o;
+}
+
+function say(t){$("msg").textContent=t}
+function speak(){
+  try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(($("val").hidden?$("msg"):$("vm")).textContent);u.lang="es-AR";u.rate=.9;speechSynthesis.speak(u)}catch(e){}
+}
+
+function menu(){
+  $("ini").hidden=true;$("val").hidden=true;$("menu").hidden=false;$("les").hidden=true;$("bk").hidden=true;$("ti").textContent="♟️ Ajedrez para chicos";
+  let tot=0;
+  $("menu").innerHTML='<p style="font-size:1.1rem;margin:4px 0 14px">¡Hola, '+esc(nm)+'! Elegí una lección 👇 <button class="g" id="chg" style="padding:6px 10px;font-size:.9rem">👤 Cambiar</button></p><div class="grid">'+L.map((p,i)=>{
+    const s=S[p.k]||0;tot+=s;
+    return `<div class="card" data-i="${i}"><div class="gl">${p.cg||p.g}</div><div class="nm">${p.n}</div><div>${"⭐".repeat(s)}${"☆".repeat(3-s)}</div></div>`}).join("")+"</div>";
+  $("tot").textContent="⭐ "+tot;
+}
+
+function open(i){
+  ci=i;cur=L[i];if(cur.v)return openVal();$("menu").hidden=true;$("les").hidden=false;$("bk").hidden=false;
+  $("ti").textContent=cur.n;learn();
+}
+
+function learn(){
+  mode="learn";tg=null;rd=0;
+  pt="rook";kg=null;if(cur.c){pos=[6,1];en=[];kg=[2,5]}else if(cur.k=="pawn"){pos=[6,3];en=[[5,4]]}else{pos=[4,3];en=[]}
+  say(cur.t);$("mode").textContent="🎯 ¡A jugar!";draw();
+}
+
+function quest(){
+  mode="quest";rd=0;startRound(true);$("mode").textContent="📖 Aprender";
+}
+
+function startRound(first){
+  tg=null;en=[];kg=null;if(cur.c){let r,c,a,b;pt=["rook","bishop","knight"][rd];let ok;do{r=rnd(8);c=rnd(8);a=rnd(8);b=rnd(8);pos=[r,c];kg=[a,b];ok=(r!=a||c!=b)&&!ckd()&&mv(pt,r,c,[kg]).some(m=>!(m[0]==a&&m[1]==b)&&has(mv(pt,m[0],m[1],[kg]),a,b))}while(!ok);say("Hacé jaque con "+NM[pt]+" al rey negro ♚ ("+(rd+1)+" de 3)");draw();return}
+  if(cur.k=="pawn"){
+    const c=1+rnd(6);pos=[6,c];
+    if(rd==0){tg=[4,c];say("Llevá el peón dos pasitos hasta la estrella ⭐")}
+    else if(rd==1){en=[[5,c+(rnd(2)?1:-1)]];tg=en[0];say("¡Comé al peón negro con tu peón, en diagonal! 😋")}
+    else{tg=[3,c];say("Llevá el peón hasta la estrella ⭐ ¡Vos podés!")}
+  }else{
+    if(first){pos=[4,3]}
+    let p=pos.slice(),n=rd+1,t;
+    for(let k=0;k<n;k++){const m=mv(cur.m||cur.k,p[0],p[1],[]);p=m[rnd(m.length)]}
+    if(p[0]==pos[0]&&p[1]==pos[1]){const m=mv(cur.m||cur.k,p[0],p[1],[]);p=m[rnd(m.length)]}
+    tg=p;say(rd==0?cur.q:"¡Otra estrella! ⭐ ("+(rd+1)+" de 3)");
+  }
+  draw();
+}
+
+function draw(){
+  dots=mv(cur.c?pt:cur.k,pos[0],pos[1],en.concat(kg?[kg]:[])).filter(m=>!(kg&&m[0]==kg[0]&&m[1]==kg[1]));
+  let h="";
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+    const isP=pos[0]==r&&pos[1]==c,isE=has(en,r,c),isD=has(dots,r,c),isT=tg&&tg[0]==r&&tg[1]==c;
+    h+=`<div class="s ${(r+c)%2?"d":"l"}" data-r="${r}" data-c="${c}">${isD?`<i class="${isE?"cap":"dot"}"></i>`:""}${isT&&!isE?'<b class="star">⭐</b>':""}${isP?`<span class="p w" id="me">${cur.c?PG[pt]:cur.g}</span>`:""}${isE?`<span class="p e">${EN}</span>`:""}${kg&&kg[0]==r&&kg[1]==c?`<span class="p e${ckd()?" ck":""}">♚${V}</span>`:""}</div>`;
+  }
+  $("bd").innerHTML=h;
+}
+
+function tap(r,c){
+  if(pos[0]==r&&pos[1]==c){const m=$("me");m.classList.remove("wig");void m.offsetWidth;m.classList.add("wig");return}
+  if(!has(dots,r,c)){say("¡Casi! Tocá uno de los puntos verdes 🟢");return}
+  pos=[r,c];en=en.filter(e=>!(e[0]==r&&e[1]==c));
+  if(mode=="quest"){
+    if(cur.c?ckd():(tg&&tg[0]==r&&tg[1]==c)){
+      rd++;
+      if(rd>=3)return win();
+      say("¡Excelente! 🌟");draw();setTimeout(()=>startRound(false),700);return;
+    }
+    if(cur.k=="pawn"&&mv("pawn",r,c,en).length==0){say("Uy, se quedó sin camino. ¡Probemos de nuevo!");draw();setTimeout(()=>startRound(false),900);return}
+    draw();return;
+  }
+  draw();
+  if(cur.c){say(ckd()?"¡JAQUE! 🚨 Tu pieza puede comer al rey. ¡El rey tiene que escapar!":"Mové la torre hasta que pueda comer al rey ♚ (misma fila o columna).")}else if(!dots.length){say("¡Llegó al final! Volvemos a empezar 🔄");setTimeout(learn,1000)}
+  else if(cur.k=="pawn"&&en.length==0&&cur.t){say("¡Comiste al peón negro! 🎉 ¡Muy bien!")}
+}
+
+function win(){
+  S[cur.k]=3;save();if(!cur.v)draw();$("wh").textContent="🎉 ¡Muy bien, "+nm+"! 🎉";
+  $("wt").textContent=cur.v?"¡Ya conocés el valor de cada pieza! ⭐⭐⭐":cur.c?"¡Ya sabés hacer jaque! ⭐⭐⭐":"¡Dominaste al "+cur.n.toLowerCase()+"! ⭐⭐⭐";
+  $("w2").hidden=ci>=L.length-1;
+  $("win").hidden=false;
+}
+
+$("menu").onclick=e=>{if(e.target.closest("#chg"))return intro();const c=e.target.closest(".card");if(c)open(+c.dataset.i)};
+$("bd").onclick=e=>{const s=e.target.closest(".s");if(s)tap(+s.dataset.r,+s.dataset.c)};
+$("mode").onclick=()=>mode=="learn"?quest():learn();
+$("sp").onclick=speak;
+$("bk").onclick=menu;
+$("w1").onclick=()=>{$("win").hidden=true;menu()};
+$("w2").onclick=()=>{$("win").hidden=true;open(ci+1)};
+const esc=s=>s.replace(/[&<>"']/g,c=>"&#"+c.charCodeAt(0)+";");
+const VAL=[["pawn","♟",1,"Peón","El peón vale 1 moneda 🪙. Es el más chiquito, ¡pero si llega al final del tablero se convierte en dama!"],["knight","♞",3,"Caballo","El caballo vale 3 monedas 🪙: salta y es muy ágil."],["bishop","♝",3,"Alfil","El alfil también vale 3 monedas 🪙, igual que el caballo."],["rook","♜",5,"Torre","La torre vale 5 monedas 🪙: es muy fuerte en las líneas rectas."],["queen","♛",9,"Dama","La dama vale 9 monedas 🪙: ¡es la pieza más poderosa!"],["king","♚",0,"Rey","El rey no tiene precio 👑: si lo perdés, se termina el juego. ¡Hay que cuidarlo siempre!"]];
+let vmode="learn",vans=0,vp=[],vd=0;
+function openVal(){$("menu").hidden=true;$("les").hidden=true;$("val").hidden=false;$("bk").hidden=false;$("ti").textContent="Valores";valLearn()}
+function valLearn(){
+  vmode="learn";$("vm").textContent="Cada pieza vale monedas 🪙. Sirven para saber si conviene cambiar una pieza por otra. ¡Tocá cada una!";
+  $("vl").innerHTML=VAL.map((v,i)=>`<div class="vr" data-i="${i}"><span class="vg">${v[1]}${V}</span><span class="vn">${v[3]}</span><span class="vb"><i style="width:${v[2]?v[2]/9*100:100}%"></i></span><b>${v[2]||"∞"}</b></div>`).join("");
+  $("vl").hidden=false;$("vq").hidden=true;$("vmode").textContent="🎯 ¡A jugar!";
+}
+function valQuiz(){vd=0;vmode="quiz";$("vl").hidden=true;$("vq").hidden=false;$("vmode").textContent="📖 Aprender";nextQ()}
+function nextQ(){
+  let a,b;do{a=VAL[rnd(5)];b=VAL[rnd(5)]}while(a[2]==b[2]);
+  vp=[a,b];vans=a[2]>b[2]?0:1;
+  $("vm").textContent="¿Cuál vale más monedas? ("+(vd+1)+" de 3)";
+  $("vq").innerHTML='<div class="qb">'+vp.map((v,i)=>`<button data-i="${i}"><span class="gl2">${v[1]}${V}</span>${v[3]}</button>`).join("")+"</div>";
+}
+$("vl").onclick=e=>{const r=e.target.closest(".vr");if(r)$("vm").textContent=VAL[+r.dataset.i][4]};
+$("vq").onclick=e=>{const b=e.target.closest("button");if(!b)return;
+  if(+b.dataset.i==vans){vd++;if(vd>=3)return win();$("vm").textContent="¡Correcto! 🌟";setTimeout(nextQ,800)}
+  else{const m=vp[vans],n=vp[1-vans];$("vm").textContent="¡Casi! "+m[3]+" vale "+m[2]+" y "+n[3]+" vale "+n[2]+". ¡Probá de nuevo!"}};
+$("vmode").onclick=()=>vmode=="learn"?valQuiz():valLearn();
+$("vsp").onclick=speak;
+function intro(){$("menu").hidden=true;$("les").hidden=true;$("val").hidden=true;$("bk").hidden=true;$("tot").textContent="";$("ti").textContent="♟️ Ajedrez para chicos";$("nm").value="";$("ini").hidden=false}
+$("go").onclick=()=>{const v=$("nm").value.trim();if(!v){$("nm").focus();return}nm=v;try{localStorage.setItem("ajn",nm)}catch(e){}loadS();menu()};
+$("nm").onkeydown=e=>{if(e.key=="Enter")$("go").click()};
+function start(){try{nm=localStorage.getItem("ajn")||""}catch(e){}if(nm){loadS();menu()}else intro()}
+start();
+</script></body></html>
