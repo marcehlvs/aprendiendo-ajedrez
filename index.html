@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Ajedrez a jugar</title>
+<title>Ajedrez para chicos</title>
 <style>
 :root{--bg:#fff3d6;--card:#fff;--ink:#2b2d42;--l:#f3ead0;--d:#7fb58a;--fr:#8a5a3b;--bg2:#e9e4ff;--ok:#4cc26b;--acc:#ff7a59;--bub:#e4f1ff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1d2036;--card:#2a2e4a;--ink:#f4f1ea;--l:#cfc3a0;--d:#4f7a5a;--fr:#5b3d28;--bg2:#2a2146;--bub:#33395c}}
@@ -68,15 +68,36 @@ const L=[
 {k:"knight",g:"♞"+V,n:"Caballo",t:"El caballo salta 🐴 y hace una L: dos pasos derecho y uno al costado.",q:"Hacé saltar al caballo hasta la estrella ⭐"},
 {k:"pawn",g:"♟"+V,n:"Peón",t:"El peón camina para adelante, de a un paso (la primera vez puede dar dos). ¡Come en diagonal! Probá comer al peón negro.",q:""},
 {k:"check",c:1,m:"rook",cg:"🚨",g:"♜"+V,n:"Jaque",t:"¡Jaque! Es cuando una pieza puede comer al rey. Probá con la torre, y después con el alfil y el caballo ♚.",q:"Hacé jaque: poné la torre mirando al rey negro ♚"},
+{k:"mate",x:1,cg:"🏆",g:"♜"+V,n:"Jaque mate",t:"¡Jaque mate! Es un jaque donde el rey no puede escapar ni comerse a quien lo ataca. ¡Se termina la partida! Probá mover la pieza para hacer jaque mate."},
 {k:"valores",v:1,cg:"⚖️",g:"♟"+V,n:"Valores"}
 ];
 const EN="♟"+V;
-let S={},cur,ci,mode,pos,en=[],tg=null,rd=0,dots=[],kg=null,pt="rook",nm="";const PG={rook:"♜"+V,bishop:"♝"+V,knight:"♞"+V},NM={rook:"la torre",bishop:"el alfil",knight:"el caballo"};
+let S={},cur,ci,mode,pos,en=[],tg=null,rd=0,dots=[],kg=null,pt="rook",fr=[],st=[],nm="";const PG={rook:"♜"+V,bishop:"♝"+V,knight:"♞"+V,queen:"♛"+V,king:"♚"+V},NM={rook:"la torre",bishop:"el alfil",knight:"el caballo"};
 const loadS=()=>{try{S=JSON.parse(localStorage.getItem("ajq:"+nm)||"{}")}catch(e){S={}}};
 const save=()=>{try{localStorage.setItem("ajq:"+nm,JSON.stringify(S))}catch(e){}};
 const $=id=>document.getElementById(id);
 const inb=(r,c)=>r>=0&&r<8&&c>=0&&c<8;
-const ckd=()=>kg&&has(mv(pt,pos[0],pos[1],[kg]),kg[0],kg[1]);
+const ckd=()=>kg&&(cur.x?has(att(),kg[0],kg[1]):has(mv(pt,pos[0],pos[1],[kg]),kg[0],kg[1]));
+const PZ=[
+ {m:"rook",p:[5,0],k:[0,3],f:[["rook",1,6]],t:"Dos torres: una ya cierra la fila de abajo. ¡Mové la otra para dar jaque mate!"},
+ {m:"queen",p:[1,0],k:[0,4],f:[["king",2,4]],t:"La dama y el rey trabajan juntos. ¡Buscá el jaque mate!"},
+ {m:"rook",p:[5,7],k:[0,3],f:[["king",2,3]],t:"Torre y rey juntos. ¿Dónde hacés jaque mate?"}];
+function puz(i){const z=PZ[i];pt=z.m;pos=z.p.slice();st=z.p.slice();kg=z.k.slice();fr=z.f.map(a=>a.slice());en=[];tg=null;say(z.t);draw()}
+function att(){const W=[[pt,pos[0],pos[1]]].concat(fr),B=W.map(a=>[a[1],a[2]]);let o=[];W.forEach(a=>{o=o.concat(mv(a[0],a[1],a[2],B))});return o}
+function mate(){const A=att();if(!has(A,kg[0],kg[1]))return 0;
+  for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++){if(!a&&!b)continue;const r=kg[0]+a,c=kg[1]+b;if(inb(r,c)&&!has(A,r,c))return 1}
+  return 2}
+function mres(){
+  const m=mate();draw();
+  if(m==2){
+    if(mode=="quest"){rd++;if(rd>=3)return win();say("¡JAQUE MATE! 🏆 ¡Excelente!");setTimeout(()=>startRound(false),1300)}
+    else{say("¡JAQUE MATE! 🏆 El rey no tiene salida. ¡Ganaste la partida!");setTimeout(learn,2500)}
+  }else{
+    say(m?"¡Jaque! Pero el rey todavía puede escapar 🏃. Buscá un jaque donde no tenga salida.":"Eso no es jaque: el rey está tranquilo 😌. ¡Probá otra casilla!");
+    setTimeout(()=>{pos=st.slice();draw()},1600);
+  }
+}
+
 const rnd=n=>Math.floor(Math.random()*n);
 const has=(E,a,b)=>E.some(e=>e[0]==a&&e[1]==b);
 
@@ -97,7 +118,7 @@ function mv(t,r,c,E){
 
 function say(t){$("msg").textContent=t}
 function speak(){
-  try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(($("val").hidden?$("msg"):$("vm")).textContent);u.lang="es-AR";u.rate=.9;speechSynthesis.speak(u)}catch(e){}
+  try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(($("val").hidden?$("msg"):$("vm")).textContent.replace(/[\p{Extended_Pictographic}\u2654-\u265F\u2606\uFE0F\u200D]/gu,"").replace(/\s+([.,!?;:])/g,"$1").replace(/\s+/g," ").trim());u.lang="es-AR";u.rate=.9;speechSynthesis.speak(u)}catch(e){}
 }
 
 function menu(){
@@ -116,7 +137,7 @@ function open(i){
 
 function learn(){
   mode="learn";tg=null;rd=0;
-  pt="rook";kg=null;if(cur.c){pos=[6,1];en=[];kg=[2,5]}else if(cur.k=="pawn"){pos=[6,3];en=[[5,4]]}else{pos=[4,3];en=[]}
+  pt="rook";kg=null;fr=[];if(cur.x){puz(0)}else if(cur.c){pos=[6,1];en=[];kg=[2,5]}else if(cur.k=="pawn"){pos=[6,3];en=[[5,4]]}else{pos=[4,3];en=[]}
   say(cur.t);$("mode").textContent="🎯 ¡A jugar!";draw();
 }
 
@@ -125,7 +146,7 @@ function quest(){
 }
 
 function startRound(first){
-  tg=null;en=[];kg=null;if(cur.c){let r,c,a,b;pt=["rook","bishop","knight"][rd];let ok;do{r=rnd(8);c=rnd(8);a=rnd(8);b=rnd(8);pos=[r,c];kg=[a,b];ok=(r!=a||c!=b)&&!ckd()&&mv(pt,r,c,[kg]).some(m=>!(m[0]==a&&m[1]==b)&&has(mv(pt,m[0],m[1],[kg]),a,b))}while(!ok);say("Hacé jaque con "+NM[pt]+" al rey negro ♚ ("+(rd+1)+" de 3)");draw();return}
+  tg=null;en=[];kg=null;fr=[];if(cur.x){puz(rd);return}if(cur.c){let r,c,a,b;pt=["rook","bishop","knight"][rd];let ok;do{r=rnd(8);c=rnd(8);a=rnd(8);b=rnd(8);pos=[r,c];kg=[a,b];ok=(r!=a||c!=b)&&!ckd()&&mv(pt,r,c,[kg]).some(m=>!(m[0]==a&&m[1]==b)&&has(mv(pt,m[0],m[1],[kg]),a,b))}while(!ok);say("Hacé jaque con "+NM[pt]+" al rey negro ♚ ("+(rd+1)+" de 3)");draw();return}
   if(cur.k=="pawn"){
     const c=1+rnd(6);pos=[6,c];
     if(rd==0){tg=[4,c];say("Llevá el peón dos pasitos hasta la estrella ⭐")}
@@ -142,11 +163,11 @@ function startRound(first){
 }
 
 function draw(){
-  dots=mv(cur.c?pt:cur.k,pos[0],pos[1],en.concat(kg?[kg]:[])).filter(m=>!(kg&&m[0]==kg[0]&&m[1]==kg[1]));
+  dots=mv(cur.c||cur.x?pt:cur.k,pos[0],pos[1],en.concat(kg?[kg]:[],fr.map(f=>[f[1],f[2]]))).filter(m=>!(kg&&m[0]==kg[0]&&m[1]==kg[1])&&!has(fr.map(f=>[f[1],f[2]]),m[0],m[1]));
   let h="";
   for(let r=0;r<8;r++)for(let c=0;c<8;c++){
     const isP=pos[0]==r&&pos[1]==c,isE=has(en,r,c),isD=has(dots,r,c),isT=tg&&tg[0]==r&&tg[1]==c;
-    h+=`<div class="s ${(r+c)%2?"d":"l"}" data-r="${r}" data-c="${c}">${isD?`<i class="${isE?"cap":"dot"}"></i>`:""}${isT&&!isE?'<b class="star">⭐</b>':""}${isP?`<span class="p w" id="me">${cur.c?PG[pt]:cur.g}</span>`:""}${isE?`<span class="p e">${EN}</span>`:""}${kg&&kg[0]==r&&kg[1]==c?`<span class="p e${ckd()?" ck":""}">♚${V}</span>`:""}</div>`;
+    h+=`<div class="s ${(r+c)%2?"d":"l"}" data-r="${r}" data-c="${c}">${isD?`<i class="${isE?"cap":"dot"}"></i>`:""}${isT&&!isE?'<b class="star">⭐</b>':""}${isP?`<span class="p w" id="me">${cur.c||cur.x?PG[pt]:cur.g}</span>`:""}${isE?`<span class="p e">${EN}</span>`:""}${kg&&kg[0]==r&&kg[1]==c?`<span class="p e${ckd()?" ck":""}">♚${V}</span>`:""}${(f=>f?`<span class="p w">${PG[f[0]]}</span>`:"")(fr.find(x=>x[1]==r&&x[2]==c))}</div>`;
   }
   $("bd").innerHTML=h;
 }
@@ -154,7 +175,7 @@ function draw(){
 function tap(r,c){
   if(pos[0]==r&&pos[1]==c){const m=$("me");m.classList.remove("wig");void m.offsetWidth;m.classList.add("wig");return}
   if(!has(dots,r,c)){say("¡Casi! Tocá uno de los puntos verdes 🟢");return}
-  pos=[r,c];en=en.filter(e=>!(e[0]==r&&e[1]==c));
+  pos=[r,c];en=en.filter(e=>!(e[0]==r&&e[1]==c));if(cur.x)return mres();
   if(mode=="quest"){
     if(cur.c?ckd():(tg&&tg[0]==r&&tg[1]==c)){
       rd++;
@@ -171,7 +192,7 @@ function tap(r,c){
 
 function win(){
   S[cur.k]=3;save();if(!cur.v)draw();$("wh").textContent="🎉 ¡Muy bien, "+nm+"! 🎉";
-  $("wt").textContent=cur.v?"¡Ya conocés el valor de cada pieza! ⭐⭐⭐":cur.c?"¡Ya sabés hacer jaque! ⭐⭐⭐":"¡Dominaste al "+cur.n.toLowerCase()+"! ⭐⭐⭐";
+  $("wt").textContent=cur.v?"¡Ya conocés el valor de cada pieza! ⭐⭐⭐":cur.x?"¡Ya sabés dar jaque mate! ⭐⭐⭐":cur.c?"¡Ya sabés hacer jaque! ⭐⭐⭐":"¡Dominaste al "+cur.n.toLowerCase()+"! ⭐⭐⭐";
   $("w2").hidden=ci>=L.length-1;
   $("win").hidden=false;
 }
